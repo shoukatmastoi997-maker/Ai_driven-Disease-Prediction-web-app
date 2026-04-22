@@ -4,15 +4,36 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: "#13233a",
-        card: "#f8fbff"
+        ink: "#0f172a",
+        primary: "#06b6d4",
+        card: "rgba(255,255,255,0.42)"
       },
       boxShadow: {
-        soft: "0 12px 30px rgba(16, 28, 48, 0.08)"
+        soft: "0 12px 38px rgba(2, 6, 23, 0.10)",
+        glow: "0 0 0 1px rgba(255,255,255,0.42), 0 18px 55px rgba(2,6,23,0.16)",
+        "glow-cyan": "0 0 0 1px rgba(6,182,212,0.30), 0 0 26px rgba(6,182,212,0.22)"
+      },
+      fontFamily: {
+        sans: ["Inter", "ui-sans-serif", "system-ui", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"],
+        display: ["Outfit", "Inter", "ui-sans-serif", "system-ui", "sans-serif"]
+      },
+      keyframes: {
+        shimmer: {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" }
+        },
+        floaty: {
+          "0%, 100%": { transform: "translate3d(0,0,0)" },
+          "50%": { transform: "translate3d(0,-8px,0)" }
+        }
+      },
+      animation: {
+        shimmer: "shimmer 1.25s linear infinite",
+        floaty: "floaty 6s ease-in-out infinite"
       },
       backgroundImage: {
-        "hero-radial":
-          "radial-gradient(circle at 10% 15%, rgba(255, 236, 179, 0.85) 0%, rgba(255,255,255,0) 42%), radial-gradient(circle at 90% 5%, rgba(185, 221, 255, 0.8) 0%, rgba(255,255,255,0) 35%)"
+        "med-gradient":
+          "radial-gradient(900px circle at 12% 8%, rgba(6,182,212,0.22) 0%, rgba(6,182,212,0) 55%), radial-gradient(900px circle at 90% 10%, rgba(59,130,246,0.18) 0%, rgba(59,130,246,0) 55%), radial-gradient(900px circle at 55% 95%, rgba(14,165,233,0.16) 0%, rgba(14,165,233,0) 55%), linear-gradient(180deg, #f8fafc 0%, #ecfeff 40%, #e0f2fe 100%)"
       }
     }
   },
