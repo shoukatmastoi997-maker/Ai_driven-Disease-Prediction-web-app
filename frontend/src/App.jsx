@@ -27,7 +27,7 @@ function App() {
               Results
             </NavLink>
             <NavLink to="/dashboard" className={linkClasses}>
-              Dashboard
+              Database
             </NavLink>
           </nav>
         </div>

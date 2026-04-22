@@ -2,8 +2,6 @@ fastapi
 uvicorn[standard]
 pandas
 numpy
-scikit-learn
-joblib
+torch
 fpdf2
-shap
 python-multipart

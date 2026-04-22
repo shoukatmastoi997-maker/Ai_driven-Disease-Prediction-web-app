@@ -1,205 +1,108 @@
 import { useEffect, useMemo, useState } from "react";
-import Plot from "react-plotly.js";
-import { fetchAnalytics, fetchHistoryFull } from "../services/api";
+import { fetchHistoryFull, fetchReportPdf } from "../services/api";
+
+function openPrintWindow(blobUrl, title = "Patient Report") {
+  const win = window.open("", "_blank", "noopener,noreferrer,width=900,height=700");
+  if (!win) return;
+  win.document.write(`<!doctype html>
+    <html>
+      <head><title>${title}</title></head>
+      <body style="margin:0">
+        <iframe id="pdf" src="${blobUrl}" style="border:0;width:100%;height:100vh"></iframe>
+        <script>
+          const iframe = document.getElementById('pdf');
+          iframe.addEventListener('load', () => {
+            try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch (e) {}
+          });
+        <\/script>
+      </body>
+    </html>`);
+  win.document.close();
+}
 
 function DashboardPage() {
-  const [analytics, setAnalytics] = useState(null);
   const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [reportUrl, setReportUrl] = useState("");
+  const [reportTitle, setReportTitle] = useState("");
+  const [reportLoading, setReportLoading] = useState(false);
 
   useEffect(() => {
     async function load() {
       try {
-        const [analyticsRes, historyRes] = await Promise.all([fetchAnalytics(), fetchHistoryFull(100)]);
-        setAnalytics(analyticsRes);
+        const historyRes = await fetchHistoryFull(500);
         setHistory(historyRes || []);
       } catch (err) {
-        setError(err?.response?.data?.detail || "Failed to load analytics.");
+        setError(err?.response?.data?.detail || "Failed to load prediction history.");
+      } finally {
+        setLoading(false);
       }
     }
     load();
   }, []);
 
-  const historyPreview = useMemo(() => history.slice(0, 20), [history]);
+  const historyPreview = useMemo(() => history.slice(0, 200), [history]);
+
+  async function viewAndPrintReport(row) {
+    setError("");
+    setReportLoading(true);
+    try {
+      const pdfBlob = await fetchReportPdf(row.id);
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      setReportUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return blobUrl;
+      });
+      setReportTitle(`Report - ${row.name} (#${row.id})`);
+      openPrintWindow(blobUrl, `Patient Report #${row.id}`);
+    } catch (err) {
+      setError(err?.response?.data?.detail || "Failed to load report PDF.");
+    } finally {
+      setReportLoading(false);
+    }
+  }
+
+  function closeReport() {
+    setReportUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return "";
+    });
+    setReportTitle("");
+  }
 
   if (error) {
     return (
       <section className="card">
-        <h2 className="text-xl font-bold text-slate-800">Dashboard</h2>
+        <h2 className="text-xl font-bold text-slate-800">Patient Database</h2>
         <p className="mt-2 text-sm font-semibold text-rose-700">{error}</p>
       </section>
     );
   }
 
-  if (!analytics) {
+  if (loading) {
     return (
       <section className="card">
-        <h2 className="text-xl font-bold text-slate-800">Dashboard</h2>
-        <p className="mt-1 text-sm text-slate-600">Loading analytics...</p>
+        <h2 className="text-xl font-bold text-slate-800">Patient Database</h2>
+        <p className="mt-1 text-sm text-slate-600">Loading prediction history...</p>
       </section>
     );
   }
 
-  const disease = analytics.disease_frequency || [];
-  const symptoms = analytics.symptom_occurrence || [];
-  const risks = analytics.risk_distribution || [];
-  const progression = analytics.severity_progression || [];
-  const topDisease = analytics.top_disease;
-  const topDiseaseTrend = analytics.top_disease_trend || [];
-
   return (
     <section className="grid gap-4">
       <div className="card">
-        <h2 className="text-xl font-bold text-slate-800">Dashboard Analytics</h2>
+        <h2 className="text-xl font-bold text-slate-800">Patient Database</h2>
         <p className="mt-1 text-sm text-slate-600">
-          Disease frequency, symptom occurrence, risk distribution, severity progression, and stored prediction records.
+          Click any row to display the patient report and open the print dialog.
         </p>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="card">
-          <p className="text-xs uppercase tracking-wider text-slate-500">Total Stored Predictions</p>
-          <p className="mt-2 text-3xl font-bold text-cyan-700">{analytics.total_predictions ?? 0}</p>
-        </div>
-        <div className="card md:col-span-2">
-          <p className="text-xs uppercase tracking-wider text-slate-500">Current Top Disease (Stored Data)</p>
-          <p className="mt-2 text-2xl font-bold text-slate-800">{topDisease?.disease || "N/A"}</p>
-          <p className="mt-1 text-sm text-slate-600">Count: {topDisease?.count ?? 0}</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="card">
-          <h3 className="text-lg font-bold text-slate-800">Disease Frequency</h3>
-          <Plot
-            data={[
-              {
-                x: disease.slice(0, 20).map((d) => d.disease),
-                y: disease.slice(0, 20).map((d) => d.count),
-                type: "bar",
-                marker: { color: "#2563eb" }
-              }
-            ]}
-            layout={{
-              margin: { l: 50, r: 20, t: 20, b: 120 },
-              xaxis: { tickangle: -35 },
-              paper_bgcolor: "transparent",
-              plot_bgcolor: "transparent"
-            }}
-            useResizeHandler
-            style={{ width: "100%", height: "340px" }}
-          />
-        </div>
-
-        <div className="card">
-          <h3 className="text-lg font-bold text-slate-800">Risk Distribution</h3>
-          <Plot
-            data={[
-              {
-                labels: risks.map((r) => r.risk_level),
-                values: risks.map((r) => r.count),
-                type: "pie",
-                marker: { colors: ["#e11d48", "#f59e0b", "#10b981"] }
-              }
-            ]}
-            layout={{
-              paper_bgcolor: "transparent",
-              plot_bgcolor: "transparent"
-            }}
-            useResizeHandler
-            style={{ width: "100%", height: "340px" }}
-          />
-        </div>
-
-        <div className="card">
-          <h3 className="text-lg font-bold text-slate-800">Top Symptom Occurrence</h3>
-          <Plot
-            data={[
-              {
-                x: symptoms.slice(0, 15).map((s) => s.count),
-                y: symptoms.slice(0, 15).map((s) => s.symptom),
-                type: "bar",
-                orientation: "h",
-                marker: { color: "#0f766e" }
-              }
-            ]}
-            layout={{
-              margin: { l: 180, r: 20, t: 20, b: 40 },
-              paper_bgcolor: "transparent",
-              plot_bgcolor: "transparent"
-            }}
-            useResizeHandler
-            style={{ width: "100%", height: "340px" }}
-          />
-        </div>
-
-        <div className="card">
-          <h3 className="text-lg font-bold text-slate-800">Severity Progression Over Time</h3>
-          <Plot
-            data={[
-              {
-                x: progression.map((p) => p.date),
-                y: progression.map((p) => p.high),
-                name: "High",
-                type: "scatter",
-                mode: "lines+markers",
-                line: { color: "#e11d48" }
-              },
-              {
-                x: progression.map((p) => p.date),
-                y: progression.map((p) => p.moderate),
-                name: "Moderate",
-                type: "scatter",
-                mode: "lines+markers",
-                line: { color: "#d97706" }
-              },
-              {
-                x: progression.map((p) => p.date),
-                y: progression.map((p) => p.low),
-                name: "Low",
-                type: "scatter",
-                mode: "lines+markers",
-                line: { color: "#059669" }
-              }
-            ]}
-            layout={{
-              margin: { l: 50, r: 20, t: 20, b: 50 },
-              paper_bgcolor: "transparent",
-              plot_bgcolor: "transparent"
-            }}
-            useResizeHandler
-            style={{ width: "100%", height: "340px" }}
-          />
-        </div>
-      </div>
-
-      <div className="card">
-        <h3 className="text-lg font-bold text-slate-800">Top Disease Trend (Stored Data)</h3>
-        <Plot
-          data={[
-            {
-              x: topDiseaseTrend.map((d) => d.date),
-              y: topDiseaseTrend.map((d) => d.count),
-              type: "scatter",
-              mode: "lines+markers",
-              marker: { color: "#0891b2" },
-              line: { color: "#0891b2" },
-              name: topDisease?.disease || "Top disease"
-            }
-          ]}
-          layout={{
-            margin: { l: 50, r: 20, t: 20, b: 50 },
-            paper_bgcolor: "transparent",
-            plot_bgcolor: "transparent"
-          }}
-          useResizeHandler
-          style={{ width: "100%", height: "320px" }}
-        />
       </div>
 
       <div className="card">
         <h3 className="text-lg font-bold text-slate-800">Stored Prediction Records</h3>
-        <p className="mt-1 text-sm text-slate-600">Showing latest {historyPreview.length} rows from SQLite.</p>
+        <p className="mt-1 text-sm text-slate-600">
+          Showing latest {historyPreview.length} rows from SQLite.
+        </p>
         <div className="mt-3 overflow-x-auto">
           <table className="min-w-full border-collapse text-sm">
             <thead>
@@ -211,11 +114,16 @@ function DashboardPage() {
                 <th className="px-2 py-2">Disease</th>
                 <th className="px-2 py-2">Risk</th>
                 <th className="px-2 py-2">Confidence</th>
+                <th className="px-2 py-2">Report</th>
               </tr>
             </thead>
             <tbody>
               {historyPreview.map((row) => (
-                <tr key={row.id} className="border-b border-slate-100 text-slate-700">
+                <tr
+                  key={row.id}
+                  className="cursor-pointer border-b border-slate-100 text-slate-700 hover:bg-slate-50"
+                  onClick={() => viewAndPrintReport(row)}
+                >
                   <td className="px-2 py-2">{row.created_at}</td>
                   <td className="px-2 py-2">{row.name}</td>
                   <td className="px-2 py-2">{row.age}</td>
@@ -223,11 +131,24 @@ function DashboardPage() {
                   <td className="px-2 py-2">{row.predicted_disease}</td>
                   <td className="px-2 py-2">{row.risk_level}</td>
                   <td className="px-2 py-2">{(Number(row.confidence) * 100).toFixed(2)}%</td>
+                  <td className="px-2 py-2">
+                    <button
+                      type="button"
+                      className="rounded-md border border-cyan-200 bg-cyan-50 px-2 py-1 text-xs font-semibold text-cyan-700 hover:border-cyan-400"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        viewAndPrintReport(row);
+                      }}
+                      disabled={reportLoading}
+                    >
+                      {reportLoading ? "Loading..." : "View/Print"}
+                    </button>
+                  </td>
                 </tr>
               ))}
               {historyPreview.length === 0 ? (
                 <tr>
-                  <td className="px-2 py-3 text-slate-500" colSpan={7}>
+                  <td className="px-2 py-3 text-slate-500" colSpan={8}>
                     No stored prediction records yet.
                   </td>
                 </tr>
@@ -236,6 +157,29 @@ function DashboardPage() {
           </table>
         </div>
       </div>
+
+      {reportUrl ? (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/50 p-4" role="dialog" aria-modal="true">
+          <div className="w-full max-w-5xl overflow-hidden rounded-xl bg-white shadow-xl">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-4 py-3">
+              <h3 className="text-sm font-bold text-slate-800">{reportTitle || "Patient Report"}</h3>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => openPrintWindow(reportUrl, reportTitle || "Patient Report")}
+                >
+                  Print
+                </button>
+                <button type="button" className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700" onClick={closeReport}>
+                  Close
+                </button>
+              </div>
+            </div>
+            <iframe title="Patient report" src={reportUrl} className="h-[75vh] w-full" />
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

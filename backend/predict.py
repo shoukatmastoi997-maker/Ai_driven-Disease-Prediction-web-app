@@ -1,21 +1,17 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
-
-import joblib
 import numpy as np
-import pandas as pd
 
-
-BASE_DIR = Path(__file__).resolve().parent
-MODEL_PATH = BASE_DIR / "disease_prediction_model.pkl"
-SYMPTOMS_PATH = BASE_DIR / "symptom_columns.pkl"
+try:
+    from backend.torch_artifacts import load_artifacts, predict_top_k
+except Exception:  # pragma: no cover
+    from torch_artifacts import load_artifacts, predict_top_k
 
 
 def predict_from_symptoms(symptoms: list[str], top_k: int = 5) -> None:
-    model = joblib.load(MODEL_PATH)
-    symptom_columns = [s.strip().lower() for s in joblib.load(SYMPTOMS_PATH)]
+    artifacts = load_artifacts()
+    symptom_columns = artifacts.symptom_columns
     symptom_index = {name: idx for idx, name in enumerate(symptom_columns)}
 
     cleaned: list[str] = []
@@ -34,16 +30,11 @@ def predict_from_symptoms(symptoms: list[str], top_k: int = 5) -> None:
     for symptom in cleaned:
         vector[symptom_index[symptom]] = 1
 
-    x_input = pd.DataFrame([vector], columns=symptom_columns)
-    prediction = model.predict(x_input)[0]
-    print(f"\nPredicted Disease: {prediction}")
-
-    if hasattr(model, "predict_proba"):
-        probabilities = model.predict_proba(x_input)[0]
-        top_indices = np.argsort(probabilities)[-top_k:][::-1]
-        print(f"\nTop {top_k} Possible Diseases:")
-        for idx in top_indices:
-            print(f"- {model.classes_[idx]} -> {probabilities[idx] * 100:.2f}%")
+    prediction, top_predictions, confidence, _ = predict_top_k(artifacts, vector, k=top_k)
+    print(f"\nPredicted Disease: {prediction} ({confidence * 100:.2f}%)")
+    print(f"\nTop {max(1, top_k)} Possible Diseases:")
+    for item in top_predictions:
+        print(f"- {item['disease']} -> {item['percent']:.2f}%")
 
 
 if __name__ == "__main__":

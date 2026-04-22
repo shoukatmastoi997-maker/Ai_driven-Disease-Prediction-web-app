@@ -19,14 +19,14 @@ export async function predictDisease(payload) {
   return data;
 }
 
-export async function fetchAnalytics() {
-  const { data } = await api.get("/api/analytics");
-  return data;
-}
-
 export async function fetchHistoryFull(limit = 100) {
   const { data } = await api.get(`/api/history-full?limit=${limit}`);
   return data;
+}
+
+export async function fetchReportPdf(recordId) {
+  const response = await api.get(`/api/report/${recordId}`, { responseType: "blob" });
+  return response.data;
 }
 
 export function reportUrl(recordId) {
