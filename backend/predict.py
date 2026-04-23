@@ -23,7 +23,7 @@ def predict_from_symptoms(symptoms: list[str], top_k: int = 5) -> None:
     invalid = sorted([s for s in cleaned if s not in symptom_index])
     if invalid:
         print("Invalid symptoms:", ", ".join(invalid))
-        print("Use only symptoms present in symptom_columns.pkl.")
+        print("Use only symptoms present in symptom_columns.json.")
         return
 
     vector = np.zeros(len(symptom_columns), dtype=int)
