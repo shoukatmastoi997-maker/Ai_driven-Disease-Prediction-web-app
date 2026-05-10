@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 const navItems = [
   { to: "/", end: true, label: "Predict", icon: Activity },
   { to: "/results", label: "Results", icon: Sparkles },
-  { to: "/dashboard", label: "Database", icon: Database }
+  { to: "/dashboard", label: "Data_Dashboard", icon: Database }
 ];
 
 const navLinkClasses = ({ isActive }) =>
@@ -136,4 +136,3 @@ export default function AppShell({ children }) {
     </div>
   );
 }
-
