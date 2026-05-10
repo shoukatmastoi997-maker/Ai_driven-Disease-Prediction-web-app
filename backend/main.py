@@ -313,18 +313,36 @@ def predict(payload: PredictionRequest) -> dict[str, Any]:
 
 
 @app.get("/api/history", response_model=list[PredictionRecord])
-def history(limit: int = Query(default=50, ge=1, le=500)) -> list[dict[str, Any]]:
-    with sqlite3.connect(DB_PATH) as conn:
-        rows = conn.execute(
-            """
+def history(
+    limit: int = Query(default=50, ge=1, le=500),
+    search: str | None = Query(default=None),
+    risk_level: str | None = Query(default=None),
+) -> list[dict[str, Any]]:
+    query = """
             SELECT id, created_at, date, time, name, fname, age, gender, basic_info,
                    symptoms, predicted_disease, risk_level, confidence, top_predictions
             FROM predictions
-            ORDER BY created_at DESC
-            LIMIT ?
-            """,
-            (limit,),
-        ).fetchall()
+            """
+    clauses = []
+    params: list[Any] = []
+
+    if search:
+        clauses.append("(LOWER(name) LIKE ? OR LOWER(predicted_disease) LIKE ?)")
+        search_term = f"%{search.strip().lower()}%"
+        params.extend([search_term, search_term])
+
+    if risk_level:
+        clauses.append("LOWER(risk_level) = LOWER(?)")
+        params.append(risk_level.strip())
+
+    if clauses:
+        query += " WHERE " + " AND ".join(clauses)
+
+    query += " ORDER BY created_at DESC LIMIT ?"
+    params.append(limit)
+
+    with sqlite3.connect(DB_PATH) as conn:
+        rows = conn.execute(query, params).fetchall()
     parsed = [_parse_history_row(row) for row in rows]
     return [
         {
@@ -344,18 +362,36 @@ def history(limit: int = Query(default=50, ge=1, le=500)) -> list[dict[str, Any]
 
 
 @app.get("/api/history-full")
-def history_full(limit: int = Query(default=100, ge=1, le=1000)) -> list[dict[str, Any]]:
-    with sqlite3.connect(DB_PATH) as conn:
-        rows = conn.execute(
-            """
+def history_full(
+    limit: int = Query(default=100, ge=1, le=1000),
+    search: str | None = Query(default=None),
+    risk_level: str | None = Query(default=None),
+) -> list[dict[str, Any]]:
+    query = """
             SELECT id, created_at, date, time, name, fname, age, gender, basic_info,
                    symptoms, predicted_disease, risk_level, confidence, top_predictions
             FROM predictions
-            ORDER BY created_at DESC
-            LIMIT ?
-            """,
-            (limit,),
-        ).fetchall()
+            """
+    clauses = []
+    params: list[Any] = []
+
+    if search:
+        clauses.append("(LOWER(name) LIKE ? OR LOWER(predicted_disease) LIKE ?)")
+        search_term = f"%{search.strip().lower()}%"
+        params.extend([search_term, search_term])
+
+    if risk_level:
+        clauses.append("LOWER(risk_level) = LOWER(?)")
+        params.append(risk_level.strip())
+
+    if clauses:
+        query += " WHERE " + " AND ".join(clauses)
+
+    query += " ORDER BY created_at DESC LIMIT ?"
+    params.append(limit)
+
+    with sqlite3.connect(DB_PATH) as conn:
+        rows = conn.execute(query, params).fetchall()
     return [_parse_history_row(row) for row in rows]
 
 

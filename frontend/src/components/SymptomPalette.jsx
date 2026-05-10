@@ -47,7 +47,7 @@ export default function SymptomPalette({
     <AnimatePresence>
       {open ? (
         <motion.div
-          className="fixed inset-0 z-50 grid place-items-center bg-slate-900/35 p-4"
+          className="fixed inset-0 z-50 grid place-items-center bg-slate-900/40 backdrop-blur-sm p-4"
           role="dialog"
           aria-modal="true"
           initial={{ opacity: 0 }}
@@ -58,7 +58,7 @@ export default function SymptomPalette({
           }}
         >
           <motion.div
-            className="glass w-full max-w-2xl rounded-3xl p-4"
+            className="glass w-full max-w-2xl rounded-3xl p-4 bg-white/92 backdrop-blur-xl border-white/60 shadow-[0_30px_80px_rgba(15,23,42,0.12)]"
             initial={{ opacity: 0, y: 10, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -81,7 +81,7 @@ export default function SymptomPalette({
               </button>
             </div>
 
-            <div className="mt-3 flex items-center gap-2 rounded-2xl border border-white/50 bg-white/35 px-3 py-2">
+            <div className="mt-3 flex items-center gap-2 rounded-2xl border border-white/60 bg-white/80 px-3 py-2 shadow-sm">
               <Search className="h-5 w-5 text-slate-500" />
               <input
                 ref={inputRef}

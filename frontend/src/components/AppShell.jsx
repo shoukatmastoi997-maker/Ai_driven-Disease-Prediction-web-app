@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 const navItems = [
   { to: "/", end: true, label: "Predict", icon: Activity },
   { to: "/results", label: "Results", icon: Sparkles },
-  { to: "/dashboard", label: "Data_Dashboard", icon: Database }
+  { to: "/dashboard", label: "Dashboard", icon: Database }
 ];
 
 const navLinkClasses = ({ isActive }) =>
@@ -33,7 +33,7 @@ function ActivePill({ active }) {
 
 export default function AppShell({ children }) {
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
+    <div className="relative h-screen overflow-x-hidden overflow-y-auto">
       <div className="pointer-events-none absolute inset-0 opacity-60" aria-hidden>
         <div className="absolute left-[-120px] top-[-120px] h-[340px] w-[340px] rounded-full bg-cyan-400/30 blur-3xl" />
         <div className="absolute right-[-140px] top-[40px] h-[320px] w-[320px] rounded-full bg-sky-500/25 blur-3xl" />

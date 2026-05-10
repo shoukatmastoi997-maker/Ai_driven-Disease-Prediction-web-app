@@ -48,12 +48,18 @@ function ResultsPage() {
   const topPredictions = result.top_predictions || [];
   const xai = result.xai?.top_contributors || [];
   const percent = confidencePercent(result);
+  const recordId = result.record_id ?? result.id;
 
   async function generatePreview() {
+    if (!recordId) {
+      setPreviewError("Cannot generate PDF: record ID is missing.");
+      return;
+    }
+
     setPreviewError("");
     setPreviewLoading(true);
     try {
-      const pdfBlob = await fetchReportPdf(result.record_id);
+      const pdfBlob = await fetchReportPdf(recordId);
       const blobUrl = URL.createObjectURL(pdfBlob);
       setPreviewUrl((prev) => {
         if (prev) URL.revokeObjectURL(prev);
@@ -96,10 +102,15 @@ function ResultsPage() {
 
             <div className="mt-4 grid gap-2 sm:flex sm:flex-wrap sm:items-center">
               <a
-                href={reportUrl(result.record_id)}
+                href={recordId ? reportUrl(recordId) : "#"}
                 target="_blank"
                 rel="noreferrer"
                 className="btn-primary inline-flex items-center justify-center"
+                onClick={(e) => {
+                  if (!recordId) {
+                    e.preventDefault();
+                  }
+                }}
               >
                 Download PDF Report
               </a>
@@ -160,7 +171,17 @@ function ResultsPage() {
             <button type="button" className="btn-primary inline-flex" onClick={generatePreview} disabled={previewLoading}>
               {previewLoading ? "Generating…" : "Generate Preview"}
             </button>
-            <a href={reportUrl(result.record_id)} target="_blank" rel="noreferrer" className="btn-ghost inline-flex">
+            <a
+              href={recordId ? reportUrl(recordId) : "#"}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-ghost inline-flex"
+              onClick={(e) => {
+                if (!recordId) {
+                  e.preventDefault();
+                }
+              }}
+            >
               Open PDF
             </a>
           </div>

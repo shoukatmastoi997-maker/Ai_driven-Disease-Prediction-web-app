@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FileText, Printer, RefreshCw } from "lucide-react";
 import { fetchHistoryFull, fetchReportPdf } from "../services/api";
@@ -30,12 +30,15 @@ function DashboardPage() {
   const [reportUrl, setReportUrl] = useState("");
   const [reportTitle, setReportTitle] = useState("");
   const [reportLoading, setReportLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [riskFilter, setRiskFilter] = useState("");
+  const mountedRef = useRef(false);
 
-  async function load() {
+  async function load(filters = {}) {
     setError("");
     setLoading(true);
     try {
-      const historyRes = await fetchHistoryFull(500);
+      const historyRes = await fetchHistoryFull(500, filters);
       setHistory(historyRes || []);
     } catch (err) {
       setError(err?.response?.data?.detail || "Failed to load prediction history.");
@@ -45,11 +48,20 @@ function DashboardPage() {
   }
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      load({ search: searchTerm, risk_level: riskFilter });
+      return;
+    }
 
-  const historyPreview = useMemo(() => history.slice(0, 200), [history]);
+    const timer = setTimeout(() => {
+      load({ search: searchTerm, risk_level: riskFilter });
+    }, 220);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, riskFilter]);
+
+  const historyPreview = useMemo(() => history, [history]);
 
   async function viewAndPrintReport(row) {
     setError("");
@@ -86,7 +98,11 @@ function DashboardPage() {
             <h2 className="font-display text-xl font-semibold tracking-tight text-ink">Patient Database</h2>
             <p className="mt-2 text-sm font-semibold text-rose-700">{error}</p>
           </div>
-          <button type="button" className="btn-primary inline-flex items-center gap-2" onClick={load}>
+          <button
+            type="button"
+            className="btn-primary inline-flex items-center gap-2"
+            onClick={() => load({ search: searchTerm, risk_level: riskFilter })}
+          >
             <RefreshCw className="h-4 w-4" />
             Retry
           </button>
@@ -133,7 +149,11 @@ function DashboardPage() {
               Click a record to preview the PDF and open the print dialog.
             </p>
           </div>
-          <button type="button" className="btn-ghost inline-flex items-center gap-2" onClick={load}>
+          <button
+            type="button"
+            className="btn-ghost inline-flex items-center gap-2"
+            onClick={() => load({ search: searchTerm, risk_level: riskFilter })}
+          >
             <RefreshCw className="h-4 w-4" />
             Refresh
           </button>
@@ -144,12 +164,61 @@ function DashboardPage() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h3 className="font-display text-lg font-semibold tracking-tight text-ink">Stored Prediction Records</h3>
-            <p className="mt-1 text-sm text-slate-600">Showing latest {historyPreview.length} rows from SQLite.</p>
+            <p className="mt-1 text-sm text-slate-600">
+              Showing {historyPreview.length} matching rows from SQLite.
+            </p>
           </div>
           <div className="text-xs font-semibold text-slate-600">
             Tip: row hover + glass table for exhibition aesthetics.
           </div>
         </div>
+
+<div className="mt-4 grid gap-3 md:grid-cols-[2fr_1fr]">
+            <label className="space-y-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Search</span>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Patient or disease name…"
+                className="field rounded-3xl bg-white/80 border-white/60 placeholder:text-slate-500"
+              />
+            </label>
+
+            <label className="space-y-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Risk</span>
+              <select
+                value={riskFilter}
+                onChange={(e) => setRiskFilter(e.target.value)}
+                className="field rounded-3xl bg-white/80 border-white/60 text-ink"
+              >
+                <option value="">All risks</option>
+                <option value="High">High</option>
+                <option value="Moderate">Moderate</option>
+                <option value="Low">Low</option>
+              </select>
+            </label>
+          </div>
+
+          {(searchTerm || riskFilter) ? (
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-white/55 bg-white/20 px-4 py-3 text-sm text-slate-600 shadow-sm">
+              <span>
+                Filtering by {searchTerm ? `search “${searchTerm}”` : ""}
+                {searchTerm && riskFilter ? ", " : ""}
+                {riskFilter ? `${riskFilter} risk` : ""}
+              </span>
+              <button
+                type="button"
+                className="btn-ghost inline-flex items-center justify-center"
+                onClick={() => {
+                  setSearchTerm("");
+                  setRiskFilter("");
+              }}
+            >
+              Clear filters
+            </button>
+          </div>
+        ) : null}
 
         <div className="mt-4 hidden lg:block">
           <div className="overflow-hidden rounded-3xl border border-white/55 bg-white/20">

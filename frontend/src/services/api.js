@@ -19,8 +19,13 @@ export async function predictDisease(payload) {
   return data;
 }
 
-export async function fetchHistoryFull(limit = 100) {
-  const { data } = await api.get(`/api/history-full?limit=${limit}`);
+export async function fetchHistoryFull(limit = 100, filters = {}) {
+  const { data } = await api.get(`/api/history-full`, {
+    params: {
+      limit,
+      ...filters
+    }
+  });
   return data;
 }
 
