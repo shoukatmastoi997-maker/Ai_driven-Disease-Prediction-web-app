@@ -5,6 +5,7 @@ import PageTransition from "./components/PageTransition";
 import PredictPage from "./pages/PredictPage";
 import ResultsPage from "./pages/ResultsPage";
 import DashboardPage from "./pages/DashboardPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
 
 function App() {
   const location = useLocation();
@@ -16,6 +17,7 @@ function App() {
             <Route path="/" element={<PredictPage />} />
             <Route path="/results" element={<ResultsPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
           </Routes>
         </PageTransition>
       </AnimatePresence>

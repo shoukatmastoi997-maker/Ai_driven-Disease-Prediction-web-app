@@ -37,3 +37,8 @@ export async function fetchReportPdf(recordId) {
 export function reportUrl(recordId) {
   return `${api.defaults.baseURL}/api/report/${recordId}`;
 }
+
+export async function fetchAnalytics() {
+  const { data } = await api.get("/api/analytics");
+  return data;
+}

@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { Activity, Database, Sparkles } from "lucide-react";
+import { Activity, BarChart3, Database, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 
 const navItems = [
   { to: "/", end: true, label: "Predict", icon: Activity },
   { to: "/results", label: "Results", icon: Sparkles },
-  { to: "/dashboard", label: "Dashboard", icon: Database }
+  { to: "/dashboard", label: "Dashboard", icon: Database },
+  { to: "/analytics", label: "Analytics", icon: BarChart3 }
 ];
 
 const navLinkClasses = ({ isActive }) =>
