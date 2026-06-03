@@ -4,7 +4,10 @@ from typing import Any
 from fpdf import FPDF
 from fastapi.responses import StreamingResponse
 
-from backend.utils import risk_guidance
+try:
+    from backend.utils import risk_guidance
+except ImportError:  # pragma: no cover
+    from utils import risk_guidance
 
 
 def generate_pdf_report(record: dict[str, Any]) -> StreamingResponse:

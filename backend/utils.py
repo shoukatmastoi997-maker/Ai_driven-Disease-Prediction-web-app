@@ -2,7 +2,10 @@ from typing import Any
 import numpy as np
 from fastapi import HTTPException
 
-from backend.config import SYMPTOM_SET, SYMPTOM_INDEX, SYMPTOM_COLUMNS
+try:
+    from backend.config import SYMPTOM_SET, SYMPTOM_INDEX, SYMPTOM_COLUMNS
+except ImportError:  # pragma: no cover
+    from config import SYMPTOM_SET, SYMPTOM_INDEX, SYMPTOM_COLUMNS
 
 
 def normalize_symptom(value: str) -> str:
