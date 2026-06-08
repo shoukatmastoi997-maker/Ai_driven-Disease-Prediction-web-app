@@ -164,9 +164,6 @@ function DashboardPage() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h3 className="font-display text-lg font-semibold tracking-tight text-ink">Stored Prediction Records</h3>
-            <p className="mt-1 text-sm text-slate-600">
-              Showing {historyPreview.length} matching rows from SQLite.
-            </p>
           </div>
           <div className="text-xs font-semibold text-slate-600">
             Tip: row hover + glass table for exhibition aesthetics.

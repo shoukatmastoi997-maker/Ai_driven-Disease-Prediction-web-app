@@ -127,7 +127,7 @@ export default function AnalyticsPage() {
           <div>
             <h2 className="font-display text-xl font-semibold tracking-tight text-ink">Analytics Overview</h2>
             <p className="mt-1 text-sm text-slate-600">
-              Aggregated summaries of stored predictions for administrators monitoring disease patterns.
+              summaries of stored predictions for monitoring disease patterns.
             </p>
           </div>
           <button type="button" className="btn-ghost inline-flex items-center gap-2" onClick={load}>
@@ -145,7 +145,6 @@ export default function AnalyticsPage() {
               Counts of predicted disease classes across all stored records (sorted by frequency).
             </p>
           </div>
-          <div className="text-xs font-semibold text-slate-600">Source: `/api/analytics`</div>
         </div>
 
         <div className="mt-4 overflow-hidden rounded-3xl border border-white/55 bg-white/20 p-3">

@@ -137,7 +137,7 @@ function PredictPage() {
               Patient Intake & Symptom Selection
             </h2>
             <p className="mt-1 text-sm text-slate-600">
-              Glassmorphism UI with smart search, animated chips, and premium loading states.
+              Please Give Patient Information, And Select Symptoms to Predict the Most Probable Disease and Generate a PDF Report.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -155,9 +155,8 @@ function PredictPage() {
         <div className="mt-4 grid grid-cols-2 gap-2 rounded-2xl border border-white/50 bg-white/20 p-2 text-xs font-semibold text-slate-700 sm:inline-grid sm:grid-cols-2">
           <button
             type="button"
-            className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2 transition ${
-              step === 1 ? "bg-white/45 shadow-glow-cyan" : "hover:bg-white/35"
-            }`}
+            className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2 transition ${step === 1 ? "bg-white/45 shadow-glow-cyan" : "hover:bg-white/35"
+              }`}
             onClick={() => setStep(1)}
           >
             <ClipboardList className="h-4 w-4" />
@@ -165,9 +164,8 @@ function PredictPage() {
           </button>
           <button
             type="button"
-            className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2 transition ${
-              step === 2 ? "bg-white/45 shadow-glow-cyan" : "hover:bg-white/35"
-            }`}
+            className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2 transition ${step === 2 ? "bg-white/45 shadow-glow-cyan" : "hover:bg-white/35"
+              }`}
             onClick={() => setStep(2)}
           >
             <CheckCircle2 className="h-4 w-4" />
@@ -193,34 +191,65 @@ function PredictPage() {
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <label className="grid gap-1 text-sm font-semibold text-slate-700">
                   Name
-                  <input className="field" required name="name" value={patient.name} onChange={onPatientChange} />
+                  <input
+                    className="field"
+                    required
+                    name="name"
+                    value={patient.name}
+                    onChange={onPatientChange}
+                    minLength={3}
+                    maxLength={50}
+                    pattern="^[A-Za-z ]+$"
+                    title="Name must contain only letters and spaces (3-50 characters)"
+                  />
                 </label>
+
                 <label className="grid gap-1 text-sm font-semibold text-slate-700">
                   Father Name
-                  <input className="field" required name="fname" value={patient.fname} onChange={onPatientChange} />
+                  <input
+                    className="field"
+                    required
+                    name="fname"
+                    value={patient.fname}
+                    onChange={onPatientChange}
+                    minLength={3}
+                    maxLength={50}
+                    pattern="^[A-Za-z ]+$"
+                    title="Father name must contain only letters and spaces (3-50 characters)"
+                  />
                 </label>
+
                 <label className="grid gap-1 text-sm font-semibold text-slate-700">
                   Age
                   <input
                     className="field"
                     required
                     type="number"
-                    min="0"
-                    max="120"
+                    min="15"
+                    max="100"
                     name="age"
                     value={patient.age}
                     onChange={onPatientChange}
+                    title="Age must be between 15 and 100 years"
                   />
                 </label>
+
                 <label className="grid gap-1 text-sm font-semibold text-slate-700">
                   Gender
-                  <select className="field" required name="gender" value={patient.gender} onChange={onPatientChange}>
+                  <select
+                    className="field"
+                    required
+                    name="gender"
+                    value={patient.gender}
+                    onChange={onPatientChange}
+                  >
                     <option value="">Select gender</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                     <option value="Other">Other</option>
                   </select>
                 </label>
+
                 <label className="grid gap-1 text-sm font-semibold text-slate-700 sm:col-span-2">
                   Basic Info (for PDF)
                   <textarea
@@ -229,7 +258,9 @@ function PredictPage() {
                     value={patient.basic_info}
                     onChange={onPatientChange}
                     rows={4}
-                    placeholder="History, blood group, clinical notes…"
+                    minLength={10}
+                    maxLength={500}
+                    placeholder="History, blood group, clinical notes..."
                   />
                 </label>
               </div>
@@ -239,16 +270,6 @@ function PredictPage() {
                   Tip: press <span className="rounded-md bg-white/40 px-1.5 py-0.5 font-semibold">Ctrl + K</span> to
                   search symptoms.
                 </div>
-                <motion.button
-                  type="button"
-                  className="btn-primary inline-flex items-center gap-2"
-                  whileHover={{ scale: 1.02, boxShadow: "0 0 0 1px rgba(6,182,212,0.45), 0 0 26px rgba(6,182,212,0.25)" }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setStep(2)}
-                  disabled={!canProceed || desktop}
-                >
-                  Next <ChevronRight className="h-4 w-4" />
-                </motion.button>
               </div>
             </motion.div>
           ) : null}

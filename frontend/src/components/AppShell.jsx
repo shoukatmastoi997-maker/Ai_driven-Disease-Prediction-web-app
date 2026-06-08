@@ -75,16 +75,7 @@ export default function AppShell({ children }) {
               })}
             </nav>
 
-            <div className="mt-4 rounded-2xl border border-white/45 bg-white/25 p-3 text-xs text-slate-600">
-              <p className="font-semibold text-slate-700">Exhibition tip</p>
-              <p className="mt-1">
-                Use the symptom search palette with{" "}
-                <span className="rounded-md bg-white/40 px-1 py-0.5 font-semibold text-slate-700">
-                  Ctrl + K
-                </span>
-                .
-              </p>
-            </div>
+          
           </div>
         </aside>
 

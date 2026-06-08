@@ -156,7 +156,7 @@ function ResultsPage() {
           <div>
             <h3 className="font-display text-lg font-semibold tracking-tight text-ink">PDF Preview</h3>
             <p className="mt-1 text-sm text-slate-600">
-              Visual confirmation that the record was saved in SQLite and the report is ready.
+              Visual confirmation
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
